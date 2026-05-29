@@ -745,13 +745,12 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw8N7o0ODlxpRpNw2-Tf
 function gerarMeses() {
   const NOMES = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
   const meses = [];
-  // Início fixo: agosto 2025
-  let ano = 2025, mes = 7; // índice 7 = agosto
+  let ano = 2025, mes = 7; // agosto 2025
   const agora = new Date();
   const limAno = agora.getFullYear() + Math.floor((agora.getMonth() + 12) / 12);
   while (ano < limAno || (ano === limAno && mes <= 11)) {
-    const aa = String(ano).slice(2);
-    const key = NOMES[mes].toLowerCase() + aa;
+    const mm  = String(mes + 1).padStart(2, '0');
+    const key = `${ano}${mm}`; // ex: "202605"
     const label = NOMES[mes] + ' ' + ano;
     meses.push({ key, label });
     mes++;
@@ -763,10 +762,9 @@ function gerarMeses() {
 const MESES = gerarMeses();
 
 function chaveDoMesAtual() {
-  const NOMES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
   const agora = new Date();
-  const aa = String(agora.getFullYear()).slice(2);
-  return NOMES[agora.getMonth()] + aa;
+  const mm = String(agora.getMonth() + 1).padStart(2, '0');
+  return `${agora.getFullYear()}${mm}`; // ex: "202605"
 }
 
 let dados = {};
@@ -793,22 +791,36 @@ async function lerPlanilha() {
     dados = {};
     let maxId = 300;
     rows.forEach((r, i) => {
-      const mes  = String(r[0] || '').trim().replace(/\./g, '');
+      // Normaliza o mês: pode vir como ISO date string, Date, "mai26", "mai.26" ou "202605"
+      const r0 = r[0];
+      let mes;
+      if (r0 instanceof Date || (typeof r0 === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(r0))) {
+        const d = new Date(r0);
+        mes = `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+      } else {
+        const s = String(r0 || '').trim();
+        const antigo = s.replace('.', '').match(/^([a-z]{3})(\d{2})$/i);
+        if (antigo) {
+          const MAP = {jan:'01',fev:'02',mar:'03',abr:'04',mai:'05',jun:'06',jul:'07',ago:'08',set:'09',out:'10',nov:'11',dez:'12'};
+          mes = `${2000 + parseInt(antigo[2])}${MAP[antigo[1].toLowerCase()] || '01'}`;
+        } else {
+          mes = s; // já em formato "202605"
+        }
+      }
+
       const tipo = String(r[1] || '').trim();
 
-      // Datas podem voltar como objeto Date do Apps Script
-      let data = r[2];
-      if (data instanceof Date) {
-        const y = data.getFullYear();
-        const m = String(data.getMonth() + 1).padStart(2, '0');
-        const d = String(data.getDate()).padStart(2, '0');
-        data = `${y}-${m}-${d}`;
+      // Normaliza a data: pode vir como ISO date string, Date, ou "YYYY-MM-DD"
+      const r2 = r[2];
+      let data;
+      if (r2 instanceof Date || (typeof r2 === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(r2))) {
+        const d = new Date(r2);
+        data = `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
       } else {
-        data = String(data || '').trim();
+        data = String(r2 || '').trim();
       }
 
       const desc  = String(r[3] || '').trim();
-      // Valores numéricos chegam como number, não string
       const valor = parseFloat(String(r[4] ?? 0).replace(',', '.')) || 0;
       const id    = i + 2;
       if (!mes || !tipo) return;
