@@ -733,10 +733,7 @@
 </div>
 
 <script>
-const SHEETS_API_KEY = 'AIzaSyA78JtfXVe_ocwouN9ckP4hUSvB05QVYS0';
-const SHEETS_ID      = '1p7S4HQx49grDXiATv0ojSqHq6-RyYBjzxVxOIDiPhy4';
-const SHEET_NAME     = 'dados';
-const API_BASE       = `https://sheets.googleapis.com/v4/spreadsheets/${SHEETS_ID}`;
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw8N7o0ODlxpRpNw2-Tfol-Mzv5kdZITNxKmpK0sllgspxoCaOkfeBeVcI7zFOf01LSRw/exec';
 
 // ─── MESES DINÂMICOS ─────────────────────────────────────────
 // Gera de AGO/2025 até 12 meses à frente do mês atual, sem limite de ano
@@ -779,11 +776,11 @@ let todasAsLinhas = []; // cache completo da planilha (exceto header)
 async function lerPlanilha() {
   mostrarLoading(true);
   try {
-    const url = `${API_BASE}/values/${encodeURIComponent(SHEET_NAME)}?key=${SHEETS_API_KEY}`;
-    const res  = await fetch(url);
+    const res  = await fetch(`${SCRIPT_URL}?action=read`);
     if (!res.ok) throw new Error('Erro ao ler planilha: ' + res.status);
     const json = await res.json();
-    const rows = (json.values || []).slice(1); // pula o header
+    if (json.error) throw new Error(json.error);
+    const rows = (json.values || []).slice(1);
     todasAsLinhas = rows;
     dados = {};
     let maxId = 300;
@@ -793,7 +790,7 @@ async function lerPlanilha() {
       const data  = (r[2] || '').trim();
       const desc  = (r[3] || '').trim();
       const valor = parseFloat((r[4] || '0').replace(',', '.')) || 0;
-      const id    = i + 2; // linha real na planilha (1=header, então linha 2 = índice 0)
+      const id    = i + 2;
       if (!mes || !tipo) return;
       if (!dados[mes]) dados[mes] = { saidas: [], entradas: [] };
       if (tipo === 'saida')   dados[mes].saidas.push({   id, data, desc, valor });
@@ -809,48 +806,23 @@ async function lerPlanilha() {
 }
 
 async function adicionarNaPlanilha(tipo, data, desc, valor) {
-  const body = { values: [[mesAtual, tipo, data, desc, valor]] };
-  const url  = `${API_BASE}/values/${encodeURIComponent(SHEET_NAME)}:append?valueInputOption=RAW&key=${SHEETS_API_KEY}`;
-  const res  = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error?.message || 'Erro ao salvar');
-  }
+  const row = encodeURIComponent(JSON.stringify([mesAtual, tipo, data, desc, valor]));
+  const res = await fetch(`${SCRIPT_URL}?action=append&row=${row}`);
+  const data2 = await res.json();
+  if (data2.error) throw new Error(data2.error);
 }
 
 async function editarNaPlanilha(linhaId, tipo, data, desc, valor) {
-  const range = `${SHEET_NAME}!A${linhaId}:E${linhaId}`;
-  const body  = { values: [[mesAtual, tipo, data, desc, valor]] };
-  const url   = `${API_BASE}/values/${encodeURIComponent(range)}?valueInputOption=RAW&key=${SHEETS_API_KEY}`;
-  const res   = await fetch(url, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error?.message || 'Erro ao editar');
-  }
+  const row = encodeURIComponent(JSON.stringify([mesAtual, tipo, data, desc, valor]));
+  const res = await fetch(`${SCRIPT_URL}?action=update&rowIndex=${linhaId}&row=${row}`);
+  const data2 = await res.json();
+  if (data2.error) throw new Error(data2.error);
 }
 
 async function excluirNaPlanilha(linhaId) {
-  // Apaga o conteúdo da linha (Google Sheets API free não permite deletar linha via key, então limpamos)
-  const range = `${SHEET_NAME}!A${linhaId}:E${linhaId}`;
-  const body  = { values: [['', '', '', '', '']] };
-  const url   = `${API_BASE}/values/${encodeURIComponent(range)}?valueInputOption=RAW&key=${SHEETS_API_KEY}`;
-  const res   = await fetch(url, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error?.message || 'Erro ao excluir');
-  }
+  const res = await fetch(`${SCRIPT_URL}?action=clear&rowIndex=${linhaId}`);
+  const data2 = await res.json();
+  if (data2.error) throw new Error(data2.error);
 }
 
 // ─── UI LOADING / ERRO ───────────────────────────────────────
