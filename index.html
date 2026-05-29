@@ -781,9 +781,12 @@ let todasAsLinhas = []; // cache completo da planilha (exceto header)
 async function lerPlanilha() {
   mostrarLoading(true);
   try {
-    const res  = await fetch(`${SCRIPT_URL}?action=read`);
-    if (!res.ok) throw new Error('Erro ao ler planilha: ' + res.status);
-    const json = await res.json();
+    const res  = await fetch(`${SCRIPT_URL}?action=read`, { cache: 'no-store' });
+    if (!res.ok) throw new Error('Erro HTTP: ' + res.status);
+    const text = await res.text();
+    let json;
+    try { json = JSON.parse(text); }
+    catch { throw new Error('Resposta inválida do servidor'); }
     if (json.error) throw new Error(json.error);
     const rows = (json.values || []).slice(1);
     todasAsLinhas = rows;
@@ -822,24 +825,27 @@ async function lerPlanilha() {
   }
 }
 
+async function chamarScript(params) {
+  const url = SCRIPT_URL + '?' + new URLSearchParams(params).toString();
+  const res  = await fetch(url, { cache: 'no-store' });
+  const text = await res.text();
+  let json;
+  try { json = JSON.parse(text); }
+  catch { throw new Error('Resposta inválida do servidor'); }
+  if (json.error) throw new Error(json.error);
+  return json;
+}
+
 async function adicionarNaPlanilha(tipo, data, desc, valor) {
-  const row = encodeURIComponent(JSON.stringify([mesAtual, tipo, data, desc, valor]));
-  const res = await fetch(`${SCRIPT_URL}?action=append&row=${row}`);
-  const data2 = await res.json();
-  if (data2.error) throw new Error(data2.error);
+  await chamarScript({ action: 'append', row: JSON.stringify([mesAtual, tipo, data, desc, valor]) });
 }
 
 async function editarNaPlanilha(linhaId, tipo, data, desc, valor) {
-  const row = encodeURIComponent(JSON.stringify([mesAtual, tipo, data, desc, valor]));
-  const res = await fetch(`${SCRIPT_URL}?action=update&rowIndex=${linhaId}&row=${row}`);
-  const data2 = await res.json();
-  if (data2.error) throw new Error(data2.error);
+  await chamarScript({ action: 'update', rowIndex: linhaId, row: JSON.stringify([mesAtual, tipo, data, desc, valor]) });
 }
 
 async function excluirNaPlanilha(linhaId) {
-  const res = await fetch(`${SCRIPT_URL}?action=clear&rowIndex=${linhaId}`);
-  const data2 = await res.json();
-  if (data2.error) throw new Error(data2.error);
+  await chamarScript({ action: 'clear', rowIndex: linhaId });
 }
 
 // ─── UI LOADING / ERRO ───────────────────────────────────────
@@ -850,9 +856,10 @@ function mostrarLoading(sim) {
 
 function mostrarErroAPI(msg) {
   const el = document.getElementById('status-api');
+  el.className = 'status-api';
   el.textContent = '⚠️ ' + msg;
   el.style.display = 'block';
-  setTimeout(() => el.style.display = 'none', 6000);
+  setTimeout(() => el.style.display = 'none', 12000);
 }
 
 function mostrarSucesso(msg) {
@@ -1131,9 +1138,14 @@ async function iniciar() {
 }
 
 async function recarregar() {
+  const btn = document.querySelector('.btn-sync');
+  btn.textContent = '↻ Buscando...';
+  btn.disabled = true;
   await lerPlanilha();
   render();
   mostrarSucesso('Dados sincronizados!');
+  btn.textContent = '↻ Sincronizar';
+  btn.disabled = false;
 }
 
 verificarSessao();
