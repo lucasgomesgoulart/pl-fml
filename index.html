@@ -636,7 +636,7 @@
   <div class="months-bar">
     <div class="select-wrap">
       <label class="select-label" for="sel-mes">Mês</label>
-      <select id="sel-mes" class="sel" onchange="onSelectChange()" aria-label="Selecionar mês">
+      <select id="sel-mes" class="sel" aria-label="Selecionar mês">
       </select>
     </div>
     <div class="select-wrap">
@@ -741,7 +741,7 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw8N7o0ODlxpRpNw2-Tf
 // ─── MESES DINÂMICOS ─────────────────────────────────────────
 // Gera de AGO/2025 até 12 meses à frente do mês atual, sem limite de ano
 function gerarMeses() {
-  const NOMES = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+  const NOMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
   const meses = [];
   let ano = 2025, mes = 7; // agosto 2025
   const agora = new Date();
@@ -912,12 +912,9 @@ function escHtml(s) {
 // ─── RENDER ──────────────────────────────────────────────────
 
 function renderTabs() {
-  // Extrair anos únicos dos meses gerados
   const anos = [...new Set(MESES.map(m => m.label.split(' ')[1]))];
-  const NOMES_MES = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
-
   const mesAtualObj = MESES.find(m => m.key === mesAtual);
-  const [nomeMesAtual, anoAtual] = mesAtualObj ? mesAtualObj.label.split(' ') : ['JAN','2026'];
+  const [nomeMesAtual, anoAtual] = mesAtualObj ? mesAtualObj.label.split(' ') : ['Janeiro','2026'];
 
   // Preencher select de ano
   const selAno = document.getElementById('sel-ano');
@@ -940,18 +937,21 @@ function renderTabs() {
 
 function onSelectChange() {
   const anoSel = document.getElementById('sel-ano').value;
-  // Atualizar opções de mês para o ano selecionado
   const mesesDoAno = MESES.filter(m => m.label.endsWith(anoSel));
   const selMes = document.getElementById('sel-mes');
-  selMes.innerHTML = mesesDoAno.map(m => {
-    const nm = m.label.split(' ')[0];
-    return `<option value="${m.key}">${nm}</option>`;
-  }).join('');
-  // Selecionar primeiro mês do ano por padrão
-  if (selMes.options.length > 0) {
-    mesAtual = selMes.value;
-  }
-  render();
+  selMes.innerHTML = mesesDoAno.map(m =>
+    `<option value="${m.key}">${m.label.split(' ')[0]}</option>`
+  ).join('');
+  // Tenta manter o mesmo mês no novo ano, senão usa o primeiro disponível
+  const mmAtual = mesAtual.slice(4); // "05" de "202605"
+  const match = mesesDoAno.find(m => m.key.slice(4) === mmAtual);
+  mesAtual = match ? match.key : (selMes.options[0]?.value || mesAtual);
+  selMes.value = mesAtual;
+  const mesObj = MESES.find(m => m.key === mesAtual);
+  document.getElementById('header-mes').textContent = mesObj ? mesObj.label : '';
+  renderTotais();
+  renderTabela('saida');
+  renderTabela('entrada');
 }
 
 function renderTotais() {
