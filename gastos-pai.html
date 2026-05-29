@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planilha de Gastos</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --vermelho: #E8192C;
+    --amarelo: #FFD600;
+    --verde: #00A651;
+    --azul: #1565C0;
+    --azul-claro: #42A5F5;
+    --cinza: #F4F6F9;
+    --branco: #FFFFFF;
+    --texto: #1A1A2E;
+    --texto-leve: #5A6074;
+    --sombra: 0 4px 20px rgba(0,0,0,0.10);
+    --radius: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :focus-visible {
+    outline: 3px solid var(--amarelo);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  /* ── LOGIN ── */
+  #login-screen {
+    position: fixed; inset: 0; z-index: 999;
+    background: #1565C0;
+    background-image:
+      radial-gradient(circle at 15% 25%, #FFD60030 0%, transparent 45%),
+      radial-gradient(circle at 85% 75%, #E8192C25 0%, transparent 45%),
+      radial-gradient(circle at 50% 50%, #00A65115 0%, transparent 60%);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+  }
+  #login-screen.oculto { display: none; }
+
+  .login-card {
+    background: #fff;
+    border-radius: 24px;
+    padding: 40px 36px 32px;
+    width: 360px; max-width: 92vw;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.30);
+    text-align: center;
+    position: relative;
+  }
+  .login-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.2rem;
+    letter-spacing: 2px;
+    color: var(--azul);
+    margin-bottom: 2px;
+  }
+  .login-logo span { color: var(--vermelho); }
+  .login-sub {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--texto-leve);
+    letter-spacing: 0.5px;
+    margin-bottom: 28px;
+  }
+  .login-label {
+    display: block;
+    text-align: left;
+    font-weight: 800;
+    font-size: 0.72rem;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--texto-leve);
+    margin-bottom: 6px;
+  }
+  .login-input-wrap { position: relative; margin-bottom: 8px; }
+  #login-senha {
+    width: 100%;
+    padding: 13px 46px 13px 16px;
+    border: 2px solid #E8EDF5;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--texto);
+    outline: none;
+    transition: border-color 0.2s;
+    letter-spacing: 2px;
+  }
+  #login-senha:focus { border-color: var(--azul-claro); }
+  #login-senha.erro { border-color: var(--vermelho); animation: shake 0.35s ease; }
+  #toggle-senha {
+    position: absolute; right: 14px; top: 50%;
+    transform: translateY(-50%);
+    background: none; border: none;
+    cursor: pointer; font-size: 1.1rem;
+    color: var(--texto-leve);
+    padding: 4px;
+  }
+  .login-erro {
+    font-size: 0.8rem; font-weight: 700;
+    color: var(--vermelho);
+    min-height: 18px;
+    margin-bottom: 16px;
+    text-align: left;
+    padding-left: 2px;
+  }
+  #btn-entrar {
+    width: 100%;
+    padding: 14px;
+    background: var(--azul);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.15rem;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  #btn-entrar:hover { background: #0D47A1; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(21,101,192,0.4); }
+  #btn-entrar:active { transform: translateY(0); }
+
+  .login-deco-1 {
+    position: absolute; top: -18px; right: -18px;
+    width: 60px; height: 60px;
+    background: var(--amarelo);
+    border-radius: 50%; opacity: 0.7;
+  }
+  .login-deco-2 {
+    position: absolute; bottom: -14px; left: -14px;
+    width: 40px; height: 40px;
+    background: var(--vermelho);
+    border-radius: 50%; opacity: 0.5;
+  }
+
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(5px); }
+  }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: #E8F0FE;
+    background-image:
+      radial-gradient(circle at 10% 20%, #FFD60033 0%, transparent 40%),
+      radial-gradient(circle at 90% 80%, #E8192C22 0%, transparent 40%),
+      radial-gradient(circle at 50% 50%, #00A65111 0%, transparent 60%);
+    min-height: 100vh;
+    color: var(--texto);
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--azul);
+    background-image: linear-gradient(135deg, #0D47A1 0%, #1565C0 50%, #1976D2 100%);
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 220px; height: 220px;
+    background: var(--amarelo);
+    border-radius: 50%;
+    opacity: 0.15;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: -40px; left: 30px;
+    width: 140px; height: 140px;
+    background: var(--vermelho);
+    border-radius: 50%;
+    opacity: 0.18;
+  }
+
+  .header-inner {
+    position: relative;
+    z-index: 1;
+    padding: 28px 32px 20px;
+  }
+
+  .header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.6rem;
+    letter-spacing: 2px;
+    color: var(--branco);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .header h1 span { color: var(--amarelo); }
+
+  .header-sub {
+    color: rgba(255,255,255,0.75);
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── MESES ── */
+  .months-bar {
+    background: rgba(0,0,0,0.18);
+    border-top: 1px solid rgba(255,255,255,0.12);
+    padding: 16px 32px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-end;
+    position: relative;
+    z-index: 1;
+  }
+  .select-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1;
+    max-width: 220px;
+  }
+  .select-label {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.7rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.65);
+  }
+  .sel {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 2px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    cursor: pointer;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 40px;
+    transition: all 0.2s;
+    width: 100%;
+  }
+  .sel:focus {
+    border-color: var(--amarelo);
+    background-color: rgba(255,255,255,0.2);
+    box-shadow: 0 0 0 3px rgba(255,214,0,0.3);
+  }
+  .sel option {
+    background: #1565C0;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  /* ── CARDS RESUMO ── */
+  .main { padding: 28px 32px; max-width: 1100px; margin: 0 auto; }
+
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .sum-card {
+    border-radius: var(--radius);
+    padding: 22px 24px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--sombra);
+  }
+  .sum-card::after {
+    content: attr(data-icon);
+    position: absolute;
+    right: 16px; bottom: 10px;
+    font-size: 3rem;
+    opacity: 0.13;
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  .sum-card.saida   { background: var(--vermelho); color: #fff; }
+  .sum-card.entrada { background: var(--verde);    color: #fff; }
+  .sum-card.saldo   { background: var(--amarelo);  color: var(--azul); }
+
+  .sum-card .label {
+    font-weight: 800;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    opacity: 0.85;
+    margin-bottom: 6px;
+  }
+  .sum-card .valor {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 1px;
+    line-height: 1.1;
+  }
+
+  /* ── TABELAS ── */
+  .tables-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .table-card {
+    background: var(--branco);
+    border-radius: var(--radius);
+    box-shadow: var(--sombra);
+    overflow: hidden;
+  }
+
+  .table-header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .table-header.saida   { background: var(--vermelho); }
+  .table-header.entrada { background: var(--verde); }
+
+  .table-header h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.3rem;
+    letter-spacing: 1.5px;
+    color: #fff;
+  }
+  .table-header.saida h2 span   { color: var(--amarelo); }
+  .table-header.entrada h2 span { color: var(--amarelo); }
+
+  .add-btn {
+    background: rgba(255,255,255,0.25);
+    border: 2px solid rgba(255,255,255,0.6);
+    color: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.8rem;
+    padding: 5px 14px;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.18s;
+    letter-spacing: 0.3px;
+  }
+  .add-btn:hover {
+    background: rgba(255,255,255,0.4);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+  }
+  thead th {
+    background: #F0F4FF;
+    padding: 11px 14px;
+    text-align: left;
+    font-weight: 800;
+    font-size: 0.75rem;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--azul);
+  }
+  tbody tr {
+    border-bottom: 1px solid #F0F2F5;
+    transition: background 0.15s;
+  }
+  tbody tr:hover { background: #F8F9FF; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody td {
+    padding: 13px 14px;
+    color: var(--texto);
+    vertical-align: middle;
+  }
+  .td-data { color: var(--texto-leve); font-size: 0.82rem; font-weight: 700; white-space: nowrap; }
+  .td-desc { font-weight: 600; }
+  .td-val-saida  { font-weight: 800; color: var(--vermelho); text-align: right; white-space: nowrap; font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 0.5px; }
+  .td-val-entrada { font-weight: 800; color: var(--verde); text-align: right; white-space: nowrap; font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 0.5px; }
+
+  .actions { display: flex; gap: 6px; justify-content: flex-end; }
+  .btn-acao {
+    height: 36px;
+    padding: 0 12px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    gap: 5px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 800;
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+  .btn-text { display: inline; }
+  .btn-edit { background: #EEF2FF; color: var(--azul); }
+  .btn-edit:hover { background: var(--azul); color: #fff; }
+  .btn-del  { background: #FFF0F0; color: var(--vermelho); }
+  .btn-del:hover  { background: var(--vermelho); color: #fff; }
+
+  .empty-row td {
+    text-align: center;
+    padding: 32px;
+    color: var(--texto-leve);
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.3px;
+  }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(21,101,192,0.35);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: #fff;
+    border-radius: 20px;
+    padding: 0;
+    width: 380px;
+    max-width: 94vw;
+    box-shadow: 0 20px 60px rgba(21,101,192,0.25);
+    overflow: hidden;
+  }
+  .modal-top {
+    padding: 20px 24px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-top.saida   { background: var(--vermelho); }
+  .modal-top.entrada { background: var(--verde); }
+
+  .modal-top h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 1.5px;
+    font-size: 1.3rem;
+    color: #fff;
+  }
+  .modal-close {
+    background: rgba(255,255,255,0.25);
+    border: none; color: #fff;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 900;
+    line-height: 1;
+    transition: background 0.15s;
+  }
+  .modal-close:hover { background: rgba(255,255,255,0.4); }
+
+  .modal-body { padding: 20px 24px 24px; }
+
+  .form-row { margin-bottom: 14px; }
+  .form-row label {
+    display: block;
+    font-weight: 800;
+    font-size: 0.75rem;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--texto-leve);
+    margin-bottom: 5px;
+  }
+  .form-row input {
+    width: 100%;
+    padding: 13px 14px;
+    border: 2px solid #E8EDF5;
+    border-radius: 10px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--texto);
+    transition: border-color 0.15s;
+    outline: none;
+  }
+  .form-row input:focus { border-color: var(--azul-claro); }
+
+  .modal-actions { display: flex; gap: 10px; margin-top: 4px; }
+  .btn-cancelar {
+    flex: 1; padding: 14px;
+    border-radius: 10px;
+    border: 2px solid #E8EDF5;
+    background: transparent;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800; font-size: 1rem;
+    color: var(--texto-leve);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-cancelar:hover { background: #F4F6F9; border-color: #ccc; }
+  .btn-salvar {
+    flex: 2; padding: 14px;
+    border-radius: 10px;
+    border: none;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800; font-size: 1rem;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-salvar.saida   { background: var(--vermelho); }
+  .btn-salvar.entrada { background: var(--verde); }
+  .btn-salvar:hover { opacity: 0.88; transform: translateY(-1px); }
+
+  /* ── NOTA GOOGLE SHEETS ── */
+  .nota-api {
+    margin-top: 20px;
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    border-left: 5px solid var(--azul-claro);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--azul);
+    box-shadow: var(--sombra);
+  }
+  .nota-api span { font-weight: 400; color: var(--texto-leve); }
+
+
+  /* ── LOADING / STATUS ── */
+  #loading-bar {
+    display: none;
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 4px; z-index: 9999;
+    background: linear-gradient(90deg, var(--amarelo), var(--vermelho), var(--verde), var(--amarelo));
+    background-size: 300% 100%;
+    animation: loadingSlide 1.2s linear infinite;
+  }
+  @keyframes loadingSlide {
+    0%   { background-position: 100% 0; }
+    100% { background-position: 0% 0; }
+  }
+  .status-api {
+    display: none;
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--vermelho); color: #fff;
+    padding: 10px 22px; border-radius: 50px;
+    font-weight: 700; font-size: 0.85rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    z-index: 9998; white-space: nowrap;
+  }
+  .status-api.sucesso { background: var(--verde); }
+  .btn-sync {
+    background: rgba(255,255,255,0.18);
+    border: 2px solid rgba(255,255,255,0.5);
+    color: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800; font-size: 0.78rem;
+    padding: 6px 14px; border-radius: 50px;
+    cursor: pointer; transition: all 0.18s;
+    letter-spacing: 0.3px;
+  }
+  .btn-sync:hover { background: rgba(255,255,255,0.32); }
+
+  @media (max-width: 700px) {
+    .main { padding: 12px; }
+    .header-inner { padding: 18px 16px 12px; }
+    .months-bar { padding: 12px 16px; gap: 10px; }
+    .select-wrap { max-width: 100%; }
+    .sel { font-size: 1rem; padding: 11px 14px; }
+    .summary { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .summary .sum-card:last-child { grid-column: 1 / -1; }
+    .tables-grid { grid-template-columns: 1fr; }
+    .header h1 { font-size: 1.8rem; }
+    .sum-card .valor { font-size: 1.6rem; }
+    table { font-size: 0.85rem; }
+    thead th { padding: 8px 10px; font-size: 0.68rem; }
+    tbody td { padding: 10px 10px; }
+    .td-desc { max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .btn-text { display: none; }
+    .btn-acao { padding: 0 9px; height: 32px; }
+    .modal { width: 96vw; }
+    .login-card { padding: 32px 22px 26px; }
+  }
+  @media (max-width: 400px) {
+    .summary { grid-template-columns: 1fr; }
+    .header h1 { font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<div id="loading-bar"></div>
+<div id="status-api" class="status-api" role="alert" aria-live="assertive"></div>
+
+<!-- TELA DE LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-deco-1"></div>
+    <div class="login-deco-2"></div>
+    <div class="login-logo">PLANILHA DE <span>GASTOS</span></div>
+    <div class="login-sub">Área restrita — digite a senha para entrar</div>
+    <label class="login-label" for="login-senha">Senha</label>
+    <div class="login-input-wrap">
+      <input type="password" id="login-senha" autocomplete="off" readonly
+        onfocus="this.removeAttribute('readonly')"
+        onkeydown="if(event.key==='Enter') tentarEntrar()">
+      <button id="toggle-senha" type="button" onclick="toggleVerSenha()" title="Mostrar/ocultar">👁️</button>
+    </div>
+    <div class="login-erro" id="login-erro"></div>
+    <button id="btn-entrar" onclick="tentarEntrar()">ENTRAR</button>
+  </div>
+</div>
+
+<div class="header">
+  <div class="header-inner">
+    <h1>PLANILHA DE <span>GASTOS</span></h1>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+      <div class="header-sub" id="header-mes">Junho 2026</div>
+      <button class="btn-sync" onclick="recarregar()" aria-label="Sincronizar dados com a planilha">↻ Sincronizar</button>
+    </div>
+  </div>
+  <div class="months-bar">
+    <div class="select-wrap">
+      <label class="select-label" for="sel-mes">Mês</label>
+      <select id="sel-mes" class="sel" onchange="onSelectChange()" aria-label="Selecionar mês">
+      </select>
+    </div>
+    <div class="select-wrap">
+      <label class="select-label" for="sel-ano">Ano</label>
+      <select id="sel-ano" class="sel" onchange="onSelectChange()" aria-label="Selecionar ano">
+      </select>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- Resumo -->
+  <div class="summary">
+    <div class="sum-card saida" data-icon="💸">
+      <div class="label">Total Saídas</div>
+      <div class="valor" id="total-saida">R$ 0,00</div>
+    </div>
+    <div class="sum-card entrada" data-icon="💰">
+      <div class="label">Total Entradas</div>
+      <div class="valor" id="total-entrada">R$ 0,00</div>
+    </div>
+    <div class="sum-card saldo" data-icon="📊">
+      <div class="label">Saldo do Mês</div>
+      <div class="valor" id="total-saldo">R$ 0,00</div>
+    </div>
+  </div>
+
+  <!-- Tabelas -->
+  <div class="tables-grid">
+    <!-- SAÍDAS -->
+    <div class="table-card">
+      <div class="table-header saida">
+        <h2>SAÍDAS <span>↓</span></h2>
+        <button class="add-btn" onclick="abrirModal('saida')">+ Adicionar</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Descrição</th>
+            <th style="text-align:right">Valor</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tbody-saida"></tbody>
+      </table>
+    </div>
+
+    <!-- ENTRADAS -->
+    <div class="table-card">
+      <div class="table-header entrada">
+        <h2>ENTRADAS <span>↑</span></h2>
+        <button class="add-btn" onclick="abrirModal('entrada')">+ Adicionar</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Descrição</th>
+            <th style="text-align:right">Valor</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tbody-entrada"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="nota-api">
+    🔗 Banco de dados: <span>Conectado ao Google Sheets em tempo real. Qualquer registro adicionado aqui aparece automaticamente na planilha do seu pai.</span>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-top" id="modal-top">
+      <h3 id="modal-titulo">Adicionar Saída</h3>
+      <button class="modal-close" onclick="fecharModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label>Data</label>
+        <input type="date" id="f-data">
+      </div>
+      <div class="form-row">
+        <label>Descrição</label>
+        <input type="text" id="f-desc" placeholder="Ex: Conta de água">
+      </div>
+      <div class="form-row">
+        <label>Valor (R$)</label>
+        <input type="number" id="f-valor" placeholder="0,00" step="0.01" min="0">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+        <button class="btn-salvar" id="btn-salvar" onclick="salvar()">Salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SHEETS_API_KEY = 'AIzaSyA78JtfXVe_ocwouN9ckP4hUSvB05QVYS0';
+const SHEETS_ID      = '1p7S4HQx49grDXiATv0ojSqHq6-RyYBjzxVxOIDiPhy4';
+const SHEET_NAME     = 'dados';
+const API_BASE       = `https://sheets.googleapis.com/v4/spreadsheets/${SHEETS_ID}`;
+
+// ─── MESES DINÂMICOS ─────────────────────────────────────────
+// Gera de AGO/2025 até 12 meses à frente do mês atual, sem limite de ano
+function gerarMeses() {
+  const NOMES = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+  const meses = [];
+  // Início fixo: agosto 2025
+  let ano = 2025, mes = 7; // índice 7 = agosto
+  const agora = new Date();
+  const limAno = agora.getFullYear() + Math.floor((agora.getMonth() + 12) / 12);
+  while (ano < limAno || (ano === limAno && mes <= 11)) {
+    const aa = String(ano).slice(2);
+    const key = NOMES[mes].toLowerCase() + aa;
+    const label = NOMES[mes] + ' ' + ano;
+    meses.push({ key, label });
+    mes++;
+    if (mes > 11) { mes = 0; ano++; }
+  }
+  return meses;
+}
+
+const MESES = gerarMeses();
+
+function chaveDoMesAtual() {
+  const NOMES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const agora = new Date();
+  const aa = String(agora.getFullYear()).slice(2);
+  return NOMES[agora.getMonth()] + aa;
+}
+
+let dados = {};
+let mesAtual = chaveDoMesAtual();
+let tipoModal = 'saida';
+let editandoId = null;
+let proxId = 300;
+let todasAsLinhas = []; // cache completo da planilha (exceto header)
+
+// ─── GOOGLE SHEETS ───────────────────────────────────────────
+
+async function lerPlanilha() {
+  mostrarLoading(true);
+  try {
+    const url = `${API_BASE}/values/${encodeURIComponent(SHEET_NAME)}?key=${SHEETS_API_KEY}`;
+    const res  = await fetch(url);
+    if (!res.ok) throw new Error('Erro ao ler planilha: ' + res.status);
+    const json = await res.json();
+    const rows = (json.values || []).slice(1); // pula o header
+    todasAsLinhas = rows;
+    dados = {};
+    let maxId = 300;
+    rows.forEach((r, i) => {
+      const mes   = (r[0] || '').trim();
+      const tipo  = (r[1] || '').trim();
+      const data  = (r[2] || '').trim();
+      const desc  = (r[3] || '').trim();
+      const valor = parseFloat((r[4] || '0').replace(',', '.')) || 0;
+      const id    = i + 2; // linha real na planilha (1=header, então linha 2 = índice 0)
+      if (!mes || !tipo) return;
+      if (!dados[mes]) dados[mes] = { saidas: [], entradas: [] };
+      if (tipo === 'saida')   dados[mes].saidas.push({   id, data, desc, valor });
+      if (tipo === 'entrada') dados[mes].entradas.push({ id, data, desc, valor });
+      if (id > maxId) maxId = id;
+    });
+    proxId = maxId + 1;
+  } catch(e) {
+    mostrarErroAPI(e.message);
+  } finally {
+    mostrarLoading(false);
+  }
+}
+
+async function adicionarNaPlanilha(tipo, data, desc, valor) {
+  const body = { values: [[mesAtual, tipo, data, desc, valor]] };
+  const url  = `${API_BASE}/values/${encodeURIComponent(SHEET_NAME)}:append?valueInputOption=RAW&key=${SHEETS_API_KEY}`;
+  const res  = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error?.message || 'Erro ao salvar');
+  }
+}
+
+async function editarNaPlanilha(linhaId, tipo, data, desc, valor) {
+  const range = `${SHEET_NAME}!A${linhaId}:E${linhaId}`;
+  const body  = { values: [[mesAtual, tipo, data, desc, valor]] };
+  const url   = `${API_BASE}/values/${encodeURIComponent(range)}?valueInputOption=RAW&key=${SHEETS_API_KEY}`;
+  const res   = await fetch(url, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error?.message || 'Erro ao editar');
+  }
+}
+
+async function excluirNaPlanilha(linhaId) {
+  // Apaga o conteúdo da linha (Google Sheets API free não permite deletar linha via key, então limpamos)
+  const range = `${SHEET_NAME}!A${linhaId}:E${linhaId}`;
+  const body  = { values: [['', '', '', '', '']] };
+  const url   = `${API_BASE}/values/${encodeURIComponent(range)}?valueInputOption=RAW&key=${SHEETS_API_KEY}`;
+  const res   = await fetch(url, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error?.message || 'Erro ao excluir');
+  }
+}
+
+// ─── UI LOADING / ERRO ───────────────────────────────────────
+
+function mostrarLoading(sim) {
+  document.getElementById('loading-bar').style.display = sim ? 'block' : 'none';
+}
+
+function mostrarErroAPI(msg) {
+  const el = document.getElementById('status-api');
+  el.textContent = '⚠️ ' + msg;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 6000);
+}
+
+function mostrarSucesso(msg) {
+  const el = document.getElementById('status-api');
+  el.textContent = '✅ ' + msg;
+  el.className = 'status-api sucesso';
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; el.className = 'status-api'; }, 3000);
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────
+
+function getMes(k) {
+  if (!dados[k]) dados[k] = { saidas: [], entradas: [] };
+  return dados[k];
+}
+
+function fmt(v) {
+  return 'R$ ' + Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 });
+}
+
+function fmtData(d) {
+  if (!d) return '-';
+  const p = d.split('-');
+  return p.length === 3 ? p[2]+'/'+p[1]+'/'+p[0].slice(2) : d;
+}
+
+// ─── RENDER ──────────────────────────────────────────────────
+
+function renderTabs() {
+  // Extrair anos únicos dos meses gerados
+  const anos = [...new Set(MESES.map(m => m.label.split(' ')[1]))];
+  const NOMES_MES = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+
+  const mesAtualObj = MESES.find(m => m.key === mesAtual);
+  const [nomeMesAtual, anoAtual] = mesAtualObj ? mesAtualObj.label.split(' ') : ['JAN','2026'];
+
+  // Preencher select de ano
+  const selAno = document.getElementById('sel-ano');
+  selAno.innerHTML = anos.map(a =>
+    `<option value="${a}" ${a === anoAtual ? 'selected' : ''}>${a}</option>`
+  ).join('');
+
+  // Preencher select de mês (todos os meses do ano selecionado disponíveis)
+  const anoSel = selAno.value;
+  const mesesDoAno = MESES.filter(m => m.label.endsWith(anoSel));
+  const selMes = document.getElementById('sel-mes');
+  selMes.innerHTML = mesesDoAno.map(m => {
+    const nm = m.label.split(' ')[0];
+    return `<option value="${m.key}" ${m.key === mesAtual ? 'selected' : ''}>${nm}</option>`;
+  }).join('');
+
+  const mesObj = MESES.find(m => m.key === mesAtual);
+  document.getElementById('header-mes').textContent = mesObj ? mesObj.label : '';
+}
+
+function onSelectChange() {
+  const anoSel = document.getElementById('sel-ano').value;
+  // Atualizar opções de mês para o ano selecionado
+  const mesesDoAno = MESES.filter(m => m.label.endsWith(anoSel));
+  const selMes = document.getElementById('sel-mes');
+  selMes.innerHTML = mesesDoAno.map(m => {
+    const nm = m.label.split(' ')[0];
+    return `<option value="${m.key}">${nm}</option>`;
+  }).join('');
+  // Selecionar primeiro mês do ano por padrão
+  if (selMes.options.length > 0) {
+    mesAtual = selMes.value;
+  }
+  render();
+}
+
+function renderTotais() {
+  const m  = getMes(mesAtual);
+  const ts = m.saidas.reduce((a,x) => a+x.valor, 0);
+  const te = m.entradas.reduce((a,x) => a+x.valor, 0);
+  const sd = te - ts;
+  document.getElementById('total-saida').textContent   = fmt(ts);
+  document.getElementById('total-entrada').textContent = fmt(te);
+  const el = document.getElementById('total-saldo');
+  el.textContent = (sd < 0 ? '- ' : '') + fmt(sd);
+}
+
+function renderTabela(tipo) {
+  const m    = getMes(mesAtual);
+  const arr  = tipo === 'saida' ? m.saidas : m.entradas;
+  const tbody = document.getElementById('tbody-' + tipo);
+  if (!arr.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="4">Nenhum registro neste mês</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = arr.map(r => `
+    <tr>
+      <td class="td-data">${fmtData(r.data)}</td>
+      <td class="td-desc">${r.desc}</td>
+      <td class="${tipo === 'saida' ? 'td-val-saida' : 'td-val-entrada'}">${fmt(r.valor)}</td>
+      <td><div class="actions">
+        <button class="btn-acao btn-edit" onclick="editar('${tipo}',${r.id})" aria-label="Editar registro">✏️ <span class="btn-text">Editar</span></button>
+        <button class="btn-acao btn-del"  onclick="excluir('${tipo}',${r.id})" aria-label="Excluir registro">🗑️ <span class="btn-text">Excluir</span></button>
+      </div></td>
+    </tr>
+  `).join('');
+}
+
+function render() {
+  renderTabs();
+  renderTotais();
+  renderTabela('saida');
+  renderTabela('entrada');
+}
+
+function selecionarMes(k) {
+  mesAtual = k;
+  render();
+}
+
+// Quando o select de mês muda diretamente
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('sel-mes').addEventListener('change', function() {
+    mesAtual = this.value;
+    const mesObj = MESES.find(m => m.key === mesAtual);
+    document.getElementById('header-mes').textContent = mesObj ? mesObj.label : '';
+    renderTotais();
+    renderTabela('saida');
+    renderTabela('entrada');
+  });
+});
+
+// ─── MODAL ───────────────────────────────────────────────────
+
+function abrirModal(tipo, id) {
+  tipoModal  = tipo;
+  editandoId = id || null;
+  const cor  = tipo === 'saida' ? 'saida' : 'entrada';
+  const acao = id ? 'Editar' : 'Adicionar';
+  const nome = tipo === 'saida' ? 'Saída' : 'Entrada';
+  document.getElementById('modal-top').className    = 'modal-top ' + cor;
+  document.getElementById('modal-titulo').textContent = acao + ' ' + nome;
+  document.getElementById('btn-salvar').className   = 'btn-salvar ' + cor;
+
+  if (id) {
+    const m   = getMes(mesAtual);
+    const arr = tipo === 'saida' ? m.saidas : m.entradas;
+    const item = arr.find(x => x.id === id);
+    if (item) {
+      document.getElementById('f-data').value  = item.data;
+      document.getElementById('f-desc').value  = item.desc;
+      document.getElementById('f-valor').value = item.valor;
+    }
+  } else {
+    document.getElementById('f-data').value  = '';
+    document.getElementById('f-desc').value  = '';
+    document.getElementById('f-valor').value = '';
+  }
+  document.getElementById('modal-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('f-desc').focus(), 80);
+}
+
+function fecharModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  editandoId = null;
+}
+
+async function salvar() {
+  const data  = document.getElementById('f-data').value;
+  const desc  = document.getElementById('f-desc').value.trim();
+  const valor = parseFloat(document.getElementById('f-valor').value);
+  if (!desc || isNaN(valor) || valor <= 0) {
+    alert('Preencha descrição e valor corretamente.');
+    return;
+  }
+
+  const btnSalvar = document.getElementById('btn-salvar');
+  btnSalvar.textContent = 'Salvando...';
+  btnSalvar.disabled = true;
+
+  try {
+    if (editandoId) {
+      await editarNaPlanilha(editandoId, tipoModal, data, desc, valor);
+      mostrarSucesso('Registro atualizado na planilha!');
+    } else {
+      await adicionarNaPlanilha(tipoModal, data, desc, valor);
+      mostrarSucesso('Registro adicionado na planilha!');
+    }
+    fecharModal();
+    await lerPlanilha();
+    render();
+  } catch(e) {
+    mostrarErroAPI(e.message);
+  } finally {
+    btnSalvar.textContent = 'Salvar';
+    btnSalvar.disabled = false;
+  }
+}
+
+function editar(tipo, id) { abrirModal(tipo, id); }
+
+async function excluir(tipo, id) {
+  if (!confirm('Tem certeza que quer excluir este registro?\nEsta ação não pode ser desfeita.')) return;
+  try {
+    await excluirNaPlanilha(id);
+    mostrarSucesso('Registro excluído!');
+    await lerPlanilha();
+    render();
+  } catch(e) {
+    mostrarErroAPI(e.message);
+  }
+}
+
+document.getElementById('modal-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) fecharModal();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') fecharModal();
+});
+
+// ─── LOGIN ───────────────────────────────────────────────────
+
+// Senha protegida com SHA-256 — não fica visível em texto puro
+const SENHA_HASH  = '9c3eadcb80424ae476b66d3f463c4a9be77c43d7de7adccf4f3b7f011c3a5d83';
+const SESSION_KEY = 'gastos_auth';
+
+async function hashSenha(s) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+function verificarSessao() {
+  if (sessionStorage.getItem(SESSION_KEY) === '1') {
+    document.getElementById('login-screen').classList.add('oculto');
+    iniciar();
+  }
+}
+
+async function tentarEntrar() {
+  const input = document.getElementById('login-senha');
+  const erro  = document.getElementById('login-erro');
+  const h = await hashSenha(input.value);
+  if (h === SENHA_HASH) {
+    sessionStorage.setItem(SESSION_KEY, '1');
+    document.getElementById('login-screen').classList.add('oculto');
+    erro.textContent = '';
+    iniciar();
+  } else {
+    input.classList.add('erro');
+    erro.textContent = 'Senha incorreta. Tente novamente.';
+    input.value = '';
+    setTimeout(() => { input.classList.remove('erro'); input.focus(); }, 400);
+  }
+}
+
+function toggleVerSenha() {
+  const inp = document.getElementById('login-senha');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+async function iniciar() {
+  render();
+  await lerPlanilha();
+  render();
+
+}
+
+async function recarregar() {
+  await lerPlanilha();
+  render();
+  mostrarSucesso('Dados sincronizados!');
+}
+
+verificarSessao();
+</script>
+</body>
+</html>
