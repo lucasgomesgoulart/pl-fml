@@ -790,7 +790,7 @@ async function lerPlanilha() {
     dados = {};
     let maxId = 300;
     rows.forEach((r, i) => {
-      const mes  = String(r[0] || '').trim();
+      const mes  = String(r[0] || '').trim().replace(/\./g, '');
       const tipo = String(r[1] || '').trim();
 
       // Datas podem voltar como objeto Date do Apps Script
