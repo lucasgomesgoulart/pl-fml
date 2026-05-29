@@ -790,11 +790,23 @@ async function lerPlanilha() {
     dados = {};
     let maxId = 300;
     rows.forEach((r, i) => {
-      const mes   = (r[0] || '').trim();
-      const tipo  = (r[1] || '').trim();
-      const data  = (r[2] || '').trim();
-      const desc  = (r[3] || '').trim();
-      const valor = parseFloat((r[4] || '0').replace(',', '.')) || 0;
+      const mes  = String(r[0] || '').trim();
+      const tipo = String(r[1] || '').trim();
+
+      // Datas podem voltar como objeto Date do Apps Script
+      let data = r[2];
+      if (data instanceof Date) {
+        const y = data.getFullYear();
+        const m = String(data.getMonth() + 1).padStart(2, '0');
+        const d = String(data.getDate()).padStart(2, '0');
+        data = `${y}-${m}-${d}`;
+      } else {
+        data = String(data || '').trim();
+      }
+
+      const desc  = String(r[3] || '').trim();
+      // Valores numéricos chegam como number, não string
+      const valor = parseFloat(String(r[4] ?? 0).replace(',', '.')) || 0;
       const id    = i + 2;
       if (!mes || !tipo) return;
       if (!dados[mes]) dados[mes] = { saidas: [], entradas: [] };
@@ -872,8 +884,12 @@ function fmt(v) {
 
 function fmtData(d) {
   if (!d) return '-';
-  const p = d.split('-');
-  return p.length === 3 ? p[2]+'/'+p[1]+'/'+p[0].slice(2) : d;
+  const p = String(d).split('-');
+  return p.length === 3 ? p[2]+'/'+p[1]+'/'+p[0].slice(2) : String(d);
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 // ─── RENDER ──────────────────────────────────────────────────
@@ -943,7 +959,7 @@ function renderTabela(tipo) {
   tbody.innerHTML = arr.map(r => `
     <tr>
       <td class="td-data">${fmtData(r.data)}</td>
-      <td class="td-desc">${r.desc}</td>
+      <td class="td-desc">${escHtml(r.desc)}</td>
       <td class="${tipo === 'saida' ? 'td-val-saida' : 'td-val-entrada'}">${fmt(r.valor)}</td>
       <td><div class="actions">
         <button class="btn-acao btn-edit" onclick="editar('${tipo}',${r.id})" aria-label="Editar registro">✏️ <span class="btn-text">Editar</span></button>
